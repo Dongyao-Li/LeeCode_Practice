@@ -1,0 +1,64 @@
+/*
+Given a string, find the length of the longest substring without repeating characters.
+
+Example 1:
+
+Input: "abcabcbb"
+Output: 3 
+Explanation: The answer is "abc", with the length of 3. 
+Example 2:
+
+Input: "bbbbb"
+Output: 1
+Explanation: The answer is "b", with the length of 1.
+Example 3:
+
+Input: "pwwkew"
+Output: 3
+Explanation: The answer is "wke", with the length of 3. 
+             Note that the answer must be a substring, "pwke" is a subsequence and not a substring.
+*/
+class Solution {
+    
+    public int lengthOfLongestSubstring(String s) {
+        
+        int sl = s.length();
+        char[] sArray = s.toCharArray();
+        int count = 0;
+        boolean b = false;
+        
+        //取出所有的substring组合
+        for (int i = 0; i < sl; i++) {
+            
+            for (int j = i; j < sl; j++) {
+                
+                //此次取出的为sub
+                String sub = s.substring(i,j);
+                //重置bool值
+                b = false;
+                
+                //检验该组合内是否有重复的字母
+                //如果有，则不再继续检验，bool值为true
+                //如果没有，则bool值为false，可以记下该子串的个数
+                for (int m = 0; m < sub.length(); m++) {
+                    for (int n = m; n < sub.length(); n++) {
+                        if (sub.charAt(m) == sub.charAt(n) && m != n) {
+                            b = true;
+                            continue;
+                        }
+                    }
+                }
+                
+                //之前记下的bool值为false
+                //与之前记下的count比较，如果更大，则count赋值为这个字符串的大小
+                if (!b) {
+                    if (count < sub.length())
+                        count = sub.length();
+                }
+                
+            }    
+        }
+        
+        return count;
+    }
+}
