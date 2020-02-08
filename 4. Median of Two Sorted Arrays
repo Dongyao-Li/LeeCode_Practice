@@ -1,0 +1,200 @@
+class Solution {
+    public static double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        
+        //其中一个数组为空，可以直接出结果
+        
+        //两个数组不搭界，可以直接出结果
+        
+        //两个数组搭界，要确定中位数是否在搭界的范围内
+        //需要找到各自搭界的边界在另一个数组的位置
+        //然后算 搭界内（两个数组一共） 搭界左 搭界右 分别有多少个数
+        //即可确定中位数是否在范围内
+        //如果不在，也可以直接出结果
+        
+        //如果在
+		//则需要找到搭界内的某个数或某两个数
+        
+        
+        //再对得到的两个数组重复搭界后的操作，直到不再搭界（可能会用到递归）
+        
+        
+        //判断是否有一个数组为空
+        //其中一个数组为空，可以直接出结果
+        int l1 = nums1.length;
+        int l2 = nums2.length;
+        if (l1 == 0) {
+            return getMedian(nums2);
+        }
+        if (l2 == 0) {
+            return getMedian(nums1);
+        }
+        
+      //数组都不为空，将最小值更小的数组设为nums1
+        if (nums1[0] > nums2[0]) {
+            int[] temp = nums1;
+            nums1 = nums2;
+            nums2 = temp;
+        }
+        
+        //先获取其上下界，再讨论是否搭界
+        int nums1_max = nums1[l1 - 1];
+        int nums2_min = nums2[0];
+        
+        //两个数组不搭界，可以直接出结果
+        if (nums1_max <= nums2_min) {
+            if (l1 < l2) return getMedian(nums2, -l1, l2-1);
+            if (l1 >= l2) return getMedian(nums1, 0, l1+l2-1);
+        }
+        
+        //找到各自搭界的边界在另一个数组（插入后）的位置
+        int nums1_max_in_num2 = getLocation(nums2, nums1_max, 0, l2-1);
+        int nums2_min_in_num1 = getLocation(nums1, nums2_min, 0, l1-1);
+        //然后算 搭界内（两个数组一共） 搭界左 搭界右 分别有多少个数
+        int common_out_left = nums2_min_in_num1;
+        int common_out_right = l2 - nums1_max_in_num2;
+        int common_num = l1 + l2 - common_out_left - common_out_right;
+        //判断中位数是否在范围内
+        if ((l1+l2)/2 < common_out_left) {
+        	//在搭界左
+        	return getMedian(nums1, 0, l1+l2-1);
+        } else if ((l1+l2)/2 > common_out_left + common_num) {
+        	//在搭界右
+        	return getMedian(nums2, -l1, l2-1);
+        } else {
+        	//在搭界范围内
+        	//则需要找到搭界内的某个数或某两个数
+        	return getLocationTwoArrays(nums1, nums2);
+        }
+    }
+    public static double getMedian(int[] nums, int lo, int hi) {
+        //ensure that the lo is lower than hi
+        if (lo>hi) {
+            int temp = lo;
+            lo = hi;
+            hi = temp;
+        }
+        //special cases
+        int len = nums.length;
+        if ((lo+hi)/2<0) return nums[0];
+        if ((lo+hi)/2>len) return nums[len-1];
+        //ordinary cases
+        int subLen = hi-lo+1;
+        if (subLen%2==0) return 0.5*(nums[lo+subLen/2-1]+nums[lo+subLen/2]);
+        else return nums[lo+subLen/2];
+    }
+    
+    public static double getMedian(int[] nums) {
+        int len = nums.length;
+        if (len==0) return nums[0];
+        else if (len%2==0) return 0.5*(nums[len/2-1]+nums[len/2]);
+        else return nums[len/2];
+    }
+    
+    public static int getLocation(int[] nums, double target, int low, int hi) {
+        //二分查找
+    	//保证时间复杂度
+        //返回整数target“如果”插入到nums里面，所处位置的下标（刚好相等则往左插，即该数原下标）
+        //使用low和hi记录位置
+        //ensure that the lo is lower than hi
+        if (low>hi) {
+            int temp = low;
+            low = hi;
+            hi = temp;
+        }
+        //special cases
+        if ((low+hi)/2<0) return 0;
+        if ((low+hi)/2>nums.length) return nums.length;
+        //使用while循环，代替函数递归
+        //只要hi不等于low，就继续下去，直到hi等于low
+        while (low<hi) {
+            int nl = hi-low+1;
+            double med = getMedian(nums,low,hi);
+            if (target <= med) {
+                //target is in left part
+                //取left part，hi变low不变
+                hi -= (nl/2);//此处隐含了强制转换，仅取等式右侧的整数部分
+            } else {
+                //target is in right part
+                //取right part，low变hi不变
+                low += nl/2;//此处隐含了强制转换
+            }
+        }
+        return hi;
+    }
+    
+    public static double getLocationTwoArrays(int[] nums1, int[] nums2) {
+    	//无左右边界时的默认方法
+    	//目的是为了给左右边界设置默认值
+    	int len1 = nums1.length;
+    	int len2 = nums2.length;
+    	int leftBound = (nums1[0] < nums2[0]) ? nums1[0] : nums2[0];
+    	int rightBound = (nums1[len1-1] > nums2[len2-1]) ? 
+				nums1[len1-1] : nums2[len2-1];
+    	return getLocationTwoArrays(nums1, nums2, leftBound, rightBound);
+    }
+    
+    public static double getLocationTwoArrays(int[] nums1, int[] nums2, 
+    		double leftBound, double rightBound) {
+    	int len1 = nums1.length;
+    	int len2 = nums2.length;
+    	//分奇偶情况讨论
+    	if ((len1 + len2)%2==0) {
+    		//需要两个数
+    		//找到分界线后的两侧的四个数中取中位数
+    		
+    		//在两个边界内所有数的最小和最大之间随机生成一个切割位置
+    		double randCut = Math.random() * (rightBound-leftBound) + leftBound;
+    		//得到切割线左边右边的数字个数
+    		int leftNum = getLocation(nums1, randCut, 0, len1-1) + 
+    				getLocation(nums2, randCut, 0, len2-1);
+    		int rightNum = len1 + len2 - leftNum;
+    		if (leftNum < rightNum) {
+    			//左小于右
+    			//需要在右切一刀
+    			//左边界变为刚刚这一刀
+    			return getLocationTwoArrays(nums1, nums2, randCut, rightBound);
+    		} else if (leftNum > rightNum) {
+    			//与上述情况相反
+    			return getLocationTwoArrays(nums1, nums2, leftBound, randCut);
+    		} else {
+    			//切的刚刚好
+    			int pos1 = getLocation(nums1, randCut, 0, len1-1);
+    			int pos2 = getLocation(nums2, randCut, 0, len2-1);
+    			int med1 = (nums1[pos1-1] > nums2[pos2-1]) ? 
+    					nums1[pos1-1] : nums2[pos2-1];
+    			int med2 = (nums1[pos1] < nums2[pos2]) ? 
+    					nums1[pos1] : nums2[pos2];
+    			return 0.5 * (med1+med2);
+    		}
+    	} else {
+    		//需要一个数
+    		double randCut = Math.random() * (rightBound-leftBound) + leftBound;
+    		int leftNum = getLocation(nums1, randCut, 0, len1-1) + 
+    				getLocation(nums2, randCut, 0, len2-1);
+    		int rightNum = len1 + len2 - leftNum;
+    		if (leftNum < rightNum - 1) {
+    			//左小于右
+    			//需要在右切一刀
+    			//左边界变为刚刚这一刀
+    			return getLocationTwoArrays(nums1, nums2, randCut, rightBound);
+    		} else if (leftNum - 1 > rightNum) {
+    			//与上述情况相反
+    			return getLocationTwoArrays(nums1, nums2, leftBound, randCut);
+    		} else {
+    			//切的刚刚好
+    			//左右部分相差1
+    			int pos1 = getLocation(nums1, randCut, 0, len1-1);
+    			int pos2 = getLocation(nums2, randCut, 0, len2-1);
+    			
+    			if (leftNum == rightNum - 1) {
+    				return (nums1[pos1] < nums2[pos2]) ? 
+    						nums1[pos1] : nums2[pos2];
+    			} else {
+    				return (nums1[pos1-1] > nums2[pos2-1]) ? 
+        					nums1[pos1-1] : nums2[pos2-1];
+    			}
+    		}
+    	}
+    }
+
+}
