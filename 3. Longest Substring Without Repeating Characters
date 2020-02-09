@@ -3,23 +3,27 @@ class Solution {
     public static int lengthOfLongestSubstring(String s) {
     	int sl = s.length();
         if (sl<=1) return sl;
-        int lb = 0;
-        int rb = 1;
+        int lb = 0;//左边界
+        int tb = 0;//提前的位置
+        int rb = 1;//右边界
         int result = 0;
         for (lb=0; lb<sl; lb++) {
         	rb = unrepeatedFirstChar(s, lb, s.length()-1);
         	for (int i=lb+1; i<rb; i++) {
-        		rb = unrepeatedFirstChar(s, i, rb);
+        		int temp = unrepeatedFirstChar(s, i, rb);
+        		if (rb > temp) {
+        			rb = temp;
+        			tb = i;
+        		}
         	}
-        	if (result < rb-lb+1) result = rb-lb+1;
+        	if (result < rb-lb+1) {
+        		result = rb-lb+1;
+        		if (lb < sl-result) lb = tb;
+        		else return result;
+        	}
         }
         return result;
     }
-    
-    public static int unrepeatedFirstChar(String s) {
-    	//返回第一次重复首位字符前的字符位置
-    	return unrepeatedFirstChar(s,0,s.length()-1);
-	}
     
     public static int unrepeatedFirstChar(String s, int lb, int rb) {
     	//返回第一次重复首位字符前的字符位置
